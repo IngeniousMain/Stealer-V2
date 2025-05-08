@@ -1,0 +1,198 @@
+-- Services
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- GUI Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.ResetOnSpawn = false
+screenGui.IgnoreGuiInset = true
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Fullscreen Black Background
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+mainFrame.ZIndex = 0
+
+-- Animated Galaxy Background
+local galaxyImage = Instance.new("ImageLabel", mainFrame)
+galaxyImage.Size = UDim2.new(1.5, 0, 1.5, 0)
+galaxyImage.Position = UDim2.new(-0.25, 0, -0.25, 0)
+galaxyImage.BackgroundTransparency = 1
+galaxyImage.ImageTransparency = 0.2
+galaxyImage.Image = "rbxassetid://2558063658"
+galaxyImage.ZIndex = 1
+
+TweenService:Create(galaxyImage, TweenInfo.new(60, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
+	Rotation = 360
+}):Play()
+
+-- ✨ Smooth Orbiting Particles (150 particles)
+local numParticles = 150
+local center = Vector2.new(0.5, 0.5)
+local radiusMin, radiusMax = 0.3, 0.6
+
+for i = 1, numParticles do
+	local star = Instance.new("Frame")
+	local size = math.random(1, 3)
+	star.Size = UDim2.new(0, size, 0, size)
+	star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	star.BackgroundTransparency = math.random(30, 70) / 100
+	star.BorderSizePixel = 0
+	star.ZIndex = 2
+	star.Parent = mainFrame
+
+	local angle = math.random() * 2 * math.pi
+	local radius = math.random() * (radiusMax - radiusMin) + radiusMin
+	local angleOffset = math.random() * 2 * math.pi -- randomize starting angle for each star
+
+	task.spawn(function()
+		while true do
+			-- Smooth, continuous movement with consistent orbit speed
+			angle += 0.01
+			local x = center.X + math.cos(angle + angleOffset) * radius
+			local y = center.Y + math.sin(angle + angleOffset) * radius
+			star.Position = UDim2.new(x, 0, y, 0)
+			wait(0.03) -- smooth movement speed
+		end
+	end)
+end
+
+-- Rounded Rectangle with Loading Text
+local box = Instance.new("Frame", mainFrame)
+box.Size = UDim2.new(0.4, 0, 0.15, 0)
+box.Position = UDim2.new(0.3, 0, 0.4, 0)
+box.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+box.BorderSizePixel = 0
+box.ZIndex = 2
+
+local corner = Instance.new("UICorner", box)
+corner.CornerRadius = UDim.new(0, 12)
+
+-- Loading Text Animation
+local loadingText = Instance.new("TextLabel", box)
+loadingText.Size = UDim2.new(1, 0, 1, 0)
+loadingText.Text = "Loading Script"
+loadingText.TextColor3 = Color3.new(1, 1, 1)
+loadingText.BackgroundTransparency = 1
+loadingText.Font = Enum.Font.SourceSansBold
+loadingText.TextScaled = true
+loadingText.ZIndex = 3
+
+task.spawn(function()
+	while true do
+		for i = 0, 3 do
+			loadingText.Text = "Loading Script" .. string.rep(".", i)
+			wait(0.5)
+		end
+	end
+end)
+
+-- Discord Copy Button
+local discordButton = Instance.new("TextButton", mainFrame)
+discordButton.Size = UDim2.new(0.3, 0, 0.08, 0)
+discordButton.Position = UDim2.new(0.35, 0, 0.6, 0)
+discordButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+discordButton.Text = "Copy Discord Invite Link!"
+discordButton.TextColor3 = Color3.new(1, 1, 1)
+discordButton.Font = Enum.Font.GothamBold
+discordButton.TextScaled = true
+discordButton.ZIndex = 3
+
+local corner2 = Instance.new("UICorner", discordButton)
+corner2.CornerRadius = UDim.new(0, 10)
+
+-- Popup for Copied Message
+local popup = Instance.new("TextLabel", mainFrame)
+popup.Size = UDim2.new(0.4, 0, 0.07, 0)
+popup.Position = UDim2.new(0.3, 0, 0.7, 0)
+popup.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+popup.Text = ""
+popup.TextColor3 = Color3.new(1, 1, 1)
+popup.Font = Enum.Font.GothamBold
+popup.TextScaled = true
+popup.Visible = false
+popup.ZIndex = 4
+
+local corner3 = Instance.new("UICorner", popup)
+corner3.CornerRadius = UDim.new(0, 8)
+
+discordButton.MouseButton1Click:Connect(function()
+	local link = "https://discord.gg/js3PRtPu"
+	setclipboard(link)
+	popup.Text = "Discord link copied!\n" .. link
+	popup.Visible = true
+	wait(2)
+	popup.Visible = false
+end)
+
+-- Fun Fact Text Label
+local factLabel = Instance.new("TextLabel", mainFrame)
+factLabel.Size = UDim2.new(0.8, 0, 0.07, 0)
+factLabel.Position = UDim2.new(0.1, 0, 0.75, 0)
+factLabel.BackgroundTransparency = 1
+factLabel.TextColor3 = Color3.new(1, 1, 1)
+factLabel.Font = Enum.Font.Gotham
+factLabel.TextScaled = true
+factLabel.TextWrapped = true
+factLabel.ZIndex = 4
+
+local facts = {
+	"Did you know? Roblox was founded in 2004.",
+	"Lua is the main scripting language in Roblox!",
+	"Some devs on Roblox make full-time income!",
+	"Roblox used to have a currency called Tix.",
+	"Over 50M games are published on Roblox.",
+	"Roblox Studio is completely free to use.",
+	"UGC stands for User Generated Content.",
+	"Roblox avatars are fully customizable.",
+	"Some games have over 1B visits!",
+	"Roblox has hosted virtual concerts.",
+	"Developers can earn Robux and real money.",
+	"Roblox is played in over 180 countries.",
+	"New updates roll out every week!",
+	"You can script using only a laptop!",
+	"Roblox was originally called DynaBlocks.",
+	"Roblox is also used in education now.",
+	"Some Roblox games are made by solo devs!",
+	"Voice chat is now part of Roblox!",
+	"Roblox has its own coding curriculum.",
+	"Fun fact: You’re currently loading something awesome!"
+}
+
+task.spawn(function()
+	for i = 1, 20 do
+		factLabel.Text = facts[i]
+		wait(3)
+	end
+end)
+
+-- Loading Bar
+local barContainer = Instance.new("Frame", mainFrame)
+barContainer.Size = UDim2.new(0.5, 0, 0.05, 0)
+barContainer.Position = UDim2.new(0.25, 0, 0.85, 0)
+barContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+barContainer.ZIndex = 3
+barContainer.BorderSizePixel = 0
+
+local barCorner = Instance.new("UICorner", barContainer)
+barCorner.CornerRadius = UDim.new(0, 10)
+
+local barFill = Instance.new("Frame", barContainer)
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
+barFill.BorderSizePixel = 0
+barFill.ZIndex = 4
+
+local fillCorner = Instance.new("UICorner", barFill)
+fillCorner.CornerRadius = UDim.new(0, 10)
+
+TweenService:Create(barFill, TweenInfo.new(60, Enum.EasingStyle.Linear), {
+	Size = UDim2.new(1, 0, 1, 0)
+}):Play()
+
+task.delay(60, function()
+	screenGui:Destroy()
+end)
