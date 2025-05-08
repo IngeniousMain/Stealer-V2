@@ -189,10 +189,10 @@ barFill.ZIndex = 4
 local fillCorner = Instance.new("UICorner", barFill)
 fillCorner.CornerRadius = UDim.new(0, 10) 
 
-TweenService:Create(barFill, TweenInfo.new(150, Enum.EasingStyle.Linear), {
+TweenService:Create(barFill, TweenInfo.new(60, Enum.EasingStyle.Linear), {
 Size = UDim2.new(1, 0, 1, 0)
 }):Play() 
 
-task.delay(150, function()
+task.delay(60, function()
 screenGui:Destroy()
 end)
