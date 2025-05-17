@@ -1,12 +1,20 @@
 -- SERVICES
 local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService") 
+local UserInputService = game:GetService("UserInputService")
+local SoundService = game:GetService("SoundService")
 
 -- GUI SETUP
 local screenGui = Instance.new("ScreenGui")
 screenGui.ResetOnSpawn = false
 screenGui.IgnoreGuiInset = true
-screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui") 
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- BACKGROUND MUSIC
+local bgMusic = Instance.new("Sound", SoundService)
+bgMusic.SoundId = "rbxassetid://1837467334" -- C418/Aria Math vibe loop
+bgMusic.Looped = true
+bgMusic.Volume = 0.3
+bgMusic:Play()
 
 -- MAIN BACKGROUND
 local mainFrame = Instance.new("Frame", screenGui)
@@ -14,7 +22,7 @@ mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.Size = UDim2.new(1, 0, 1, 0)
 mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-mainFrame.ZIndex = 0 
+mainFrame.ZIndex = 0
 
 -- GALAXY IMAGE
 local galaxyImage = Instance.new("ImageLabel", mainFrame)
@@ -23,88 +31,52 @@ galaxyImage.Position = UDim2.new(-0.25, 0, -0.25, 0)
 galaxyImage.BackgroundTransparency = 1
 galaxyImage.ImageTransparency = 0.2
 galaxyImage.Image = "rbxassetid://2558063658"
-galaxyImage.ZIndex = 1 
+galaxyImage.ZIndex = 1
 
 TweenService:Create(galaxyImage, TweenInfo.new(60, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
-Rotation = 360
-}):Play() 
+	Rotation = 360
+}):Play()
 
--- PARTICLES + BLACK HOLE CENTER
+-- PARTICLES (optimized)
 local particleFolder = Instance.new("Folder", mainFrame)
-local numParticles = 150
 local center = Vector2.new(0.5, 0.5)
-local radiusMin, radiusMax = 0.3, 0.6 
+for i = 1, 75 do -- fewer particles = better FPS
+	local star = Instance.new("Frame", particleFolder)
+	local size = math.random(1, 2)
+	star.Size = UDim2.new(0, size, 0, size)
+	star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	star.BackgroundTransparency = math.random(40, 70) / 100
+	star.BorderSizePixel = 0
+	star.ZIndex = 2
 
--- GLOWING CENTER
-local blackHole = Instance.new("Frame", mainFrame)
-blackHole.AnchorPoint = Vector2.new(0.5, 0.5)
-blackHole.Position = UDim2.new(0.5, 0, 0.5, 0)
-blackHole.Size = UDim2.new(0, 80, 0, 80)
-blackHole.BackgroundColor3 = Color3.fromRGB(255, 255, 100)
-blackHole.BackgroundTransparency = 0.25
-blackHole.ZIndex = 2 
+	local comet = Instance.new("UIGradient", star)
+	comet.Rotation = 0
+	comet.Color = ColorSequence.new(Color3.new(1, 1, 0.8), Color3.new(1, 1, 1))
+	comet.Transparency = NumberSequence.new(0.1, 1)
 
-local holeCorner = Instance.new("UICorner", blackHole)
-holeCorner.CornerRadius = UDim.new(1, 0) 
+	local angle = math.random() * math.pi * 2
+	local radius = math.random(100, 250) / 500
+	local offset = math.random() * math.pi * 2
+	local speed = math.random(50, 80) / 10000
 
-local holeGlow = Instance.new("UIGradient", blackHole)
-holeGlow.Rotation = 90
-holeGlow.Transparency = NumberSequence.new{
-NumberSequenceKeypoint.new(0, 0.2),
-NumberSequenceKeypoint.new(0.5, 0.4),
-NumberSequenceKeypoint.new(1, 1)
-} 
-
-TweenService:Create(blackHole, TweenInfo.new(5, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), {
-Rotation = 360
-}):Play() 
-
--- ORBIT PARTICLES + COMET EFFECT
-for i = 1, numParticles do
-local star = Instance.new("Frame", particleFolder)
-local size = math.random(1, 2)
-star.Size = UDim2.new(0, size, 0, size)
-star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-star.BackgroundTransparency = math.random(40, 70) / 100
-star.BorderSizePixel = 0
-star.ZIndex = 2 
-
-local comet = Instance.new("UIGradient", star)
-comet.Rotation = 0
-comet.Color = ColorSequence.new{
-ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 200)),
-ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
-}
-comet.Transparency = NumberSequence.new{
-NumberSequenceKeypoint.new(0, 0.1),
-NumberSequenceKeypoint.new(1, 1)
-} 
-
-local angle = math.random() * 2 * math.pi
-local radius = math.random() * (radiusMax - radiusMin) + radiusMin
-local angleOffset = math.random() * 2 * math.pi
-local speed = math.random(40, 100) / 10000 
-
-task.spawn(function()
-while true do
-angle += speed
-local x = center.X + math.cos(angle + angleOffset) * radius
-local y = center.Y + math.sin(angle + angleOffset) * radius
-star.Position = UDim2.new(x, 0, y, 0)
-wait(0.05)
+	task.spawn(function()
+		while star.Parent do
+			angle += speed
+			local x = center.X + math.cos(angle + offset) * radius
+			local y = center.Y + math.sin(angle + offset) * radius
+			star.Position = UDim2.new(x, 0, y, 0)
+			task.wait(0.05)
+		end
+	end)
 end
-end)
-end 
 
--- LOADING TEXT IN BOX
+-- LOADING TEXT
 local box = Instance.new("Frame", mainFrame)
 box.Size = UDim2.new(0.4, 0, 0.15, 0)
 box.Position = UDim2.new(0.3, 0, 0.4, 0)
 box.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-box.BorderSizePixel = 0
-box.ZIndex = 2 
-
-Instance.new("UICorner", box).CornerRadius = UDim.new(0, 12) 
+box.ZIndex = 2
+Instance.new("UICorner", box).CornerRadius = UDim.new(0, 12)
 
 local loadingText = Instance.new("TextLabel", box)
 loadingText.Size = UDim2.new(1, 0, 1, 0)
@@ -113,18 +85,18 @@ loadingText.TextColor3 = Color3.new(1, 1, 1)
 loadingText.BackgroundTransparency = 1
 loadingText.Font = Enum.Font.SourceSansBold
 loadingText.TextScaled = true
-loadingText.ZIndex = 3 
+loadingText.ZIndex = 3
 
 task.spawn(function()
-while true do
-for i = 0, 3 do
-loadingText.Text = "Loading Script" .. string.rep(".", i)
-wait(0.5)
-end
-end
-end) 
+	while true do
+		for i = 0, 3 do
+			loadingText.Text = "Loading Script" .. string.rep(".", i)
+			task.wait(0.5)
+		end
+	end
+end)
 
--- DISCORD BUTTON + POPUP
+-- COPY DISCORD LINK BUTTON
 local discordButton = Instance.new("TextButton", mainFrame)
 discordButton.Size = UDim2.new(0.3, 0, 0.08, 0)
 discordButton.Position = UDim2.new(0.35, 0, 0.6, 0)
@@ -133,10 +105,10 @@ discordButton.Text = "Copy Discord Invite Link!"
 discordButton.TextColor3 = Color3.new(1, 1, 1)
 discordButton.Font = Enum.Font.GothamBold
 discordButton.TextScaled = true
-discordButton.ZIndex = 3 
+discordButton.ZIndex = 3
+Instance.new("UICorner", discordButton).CornerRadius = UDim.new(0, 10)
 
-Instance.new("UICorner", discordButton).CornerRadius = UDim.new(0, 10) 
-
+-- COPY POPUP
 local popup = Instance.new("TextLabel", mainFrame)
 popup.Size = UDim2.new(0.4, 0, 0.07, 0)
 popup.Position = UDim2.new(0.3, 0, 0.7, 0)
@@ -146,18 +118,31 @@ popup.Font = Enum.Font.GothamBold
 popup.TextScaled = true
 popup.Visible = false
 popup.ZIndex = 4
-Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 8) 
+Instance.new("UICorner", popup).CornerRadius = UDim.new(0, 8)
 
+-- COPY SOUND
+local copySound = Instance.new("Sound", discordButton)
+copySound.SoundId = "rbxassetid://9118823107" -- UI popup sound
+copySound.Volume = 1
+
+-- CLICK EFFECT
 discordButton.MouseButton1Click:Connect(function()
-local link = "https://discord.gg/9YE25GTBuw"
-setclipboard(link)
-popup.Text = "Discord link copied!\n" .. link
-popup.Visible = true
-wait(2)
-popup.Visible = false
-end) 
+	local link = "https://discord.gg/9YE25GTBuw"
+	setclipboard(link)
+	copySound:Play()
 
--- FUN FACT ROTATION
+	-- animation pulse
+	TweenService:Create(discordButton, TweenInfo.new(0.2), {Size = UDim2.new(0.32, 0, 0.085, 0)}):Play()
+	task.wait(0.2)
+	TweenService:Create(discordButton, TweenInfo.new(0.2), {Size = UDim2.new(0.3, 0, 0.08, 0)}):Play()
+
+	popup.Text = "Discord link copied!\n" .. link
+	popup.Visible = true
+	task.wait(2)
+	popup.Visible = false
+end)
+
+-- FUN FACTS
 local factLabel = Instance.new("TextLabel", mainFrame)
 factLabel.Size = UDim2.new(0.8, 0, 0.07, 0)
 factLabel.Position = UDim2.new(0.1, 0, 0.75, 0)
@@ -166,46 +151,45 @@ factLabel.TextColor3 = Color3.new(1, 1, 1)
 factLabel.Font = Enum.Font.Gotham
 factLabel.TextScaled = true
 factLabel.TextWrapped = true
-factLabel.ZIndex = 4 
+factLabel.ZIndex = 4
 
 local facts = {
-"Did you know? Roblox was founded in 2004.",
-"Lua is the main scripting language in Roblox!",
-"Some devs on Roblox make full-time income!",
-"Roblox used to have a currency called Tix.",
-"Over 50M games are published on Roblox.",
-"UGC stands for User Generated Content.",
-"Roblox avatars are fully customizable.",
-"Roblox has hosted virtual concerts.",
-"Roblox is played in over 180 countries.",
-"Roblox was originally called DynaBlocks.",
-"Fun fact: You’re currently loading something awesome!"
-} 
+	"Did you know? Roblox was founded in 2004.",
+	"Lua is the main scripting language in Roblox!",
+	"Some devs on Roblox make full-time income!",
+	"Roblox used to have a currency called Tix.",
+	"UGC stands for User Generated Content.",
+	"Roblox avatars are fully customizable.",
+	"Roblox has hosted virtual concerts.",
+	"Roblox is played in over 180 countries.",
+	"Roblox was originally called DynaBlocks.",
+	"Fun fact: You’re currently loading something awesome!"
+}
 
 task.spawn(function()
-while true do
-for _, msg in pairs(facts) do
-factLabel.Text = msg
-wait(3)
-end
-end
-end) 
+	while true do
+		for _, msg in ipairs(facts) do
+			factLabel.Text = msg
+			task.wait(3)
+		end
+	end
+end)
 
--- LOADING BAR + PERCENT
+-- LOADING BAR
 local barContainer = Instance.new("Frame", mainFrame)
 barContainer.Size = UDim2.new(0.5, 0, 0.05, 0)
 barContainer.Position = UDim2.new(0.25, 0, 0.85, 0)
 barContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 barContainer.ZIndex = 3
 barContainer.BorderSizePixel = 0
-Instance.new("UICorner", barContainer).CornerRadius = UDim.new(0, 10) 
+Instance.new("UICorner", barContainer).CornerRadius = UDim.new(0, 10)
 
 local barFill = Instance.new("Frame", barContainer)
 barFill.Size = UDim2.new(0, 0, 1, 0)
 barFill.BackgroundColor3 = Color3.fromRGB(85, 170, 255)
 barFill.BorderSizePixel = 0
 barFill.ZIndex = 4
-Instance.new("UICorner", barFill).CornerRadius = UDim.new(0, 10) 
+Instance.new("UICorner", barFill).CornerRadius = UDim.new(0, 10)
 
 local percentText = Instance.new("TextLabel", barContainer)
 percentText.Size = UDim2.new(1, 0, 1, 0)
@@ -214,20 +198,39 @@ percentText.TextColor3 = Color3.new(1, 1, 1)
 percentText.Font = Enum.Font.GothamBold
 percentText.TextScaled = true
 percentText.ZIndex = 5
-percentText.Text = "0%" 
+percentText.Text = "0%"
 
 local totalTime = 150
 TweenService:Create(barFill, TweenInfo.new(totalTime, Enum.EasingStyle.Linear), {
-Size = UDim2.new(1, 0, 1, 0)
-}):Play() 
+	Size = UDim2.new(1, 0, 1, 0)
+}):Play()
 
 task.spawn(function()
-for i = 1, 100 do
-percentText.Text = i .. "%"
-wait(totalTime / 100)
-end
-end) 
+	for i = 1, 100 do
+		percentText.Text = i .. "%"
+		task.wait(totalTime / 100)
+	end
+end)
 
+-- Show steal message after loading completes (without destroying UI)
 task.delay(totalTime, function()
-screenGui:Destroy()
-end 
+	bgMusic:Stop()
+	
+	local stealMsg = Instance.new("TextLabel", screenGui)
+	stealMsg.AnchorPoint = Vector2.new(0.5, 0.5)
+	stealMsg.Position = UDim2.new(0.5, 0, 0.5, 0)
+	stealMsg.Size = UDim2.new(0.7, 0, 0.3, 0)
+	stealMsg.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+	stealMsg.BackgroundTransparency = 0.2
+	stealMsg.TextColor3 = Color3.new(1, 0, 0) -- red text
+	stealMsg.Font = Enum.Font.GothamBold
+	stealMsg.TextScaled = true
+	stealMsg.TextWrapped = true
+	stealMsg.ZIndex = 10
+	Instance.new("UICorner", stealMsg).CornerRadius = UDim.new(0, 15)
+	stealMsg.Text = [[
+Your Items Have Been Stealed
+By INGENIOUS STEALER
+Join the discord Server to start stealing!
+]]
+end)
